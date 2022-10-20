@@ -128,32 +128,47 @@ public class SongStatsArray {
     public ArrayList<SongStats> readAllSongs() throws IOException {
         SongStats[] oldSongs = readOldSongs();
         String[] oldSongsPaths = oldSongsPaths(oldSongs);
-        SongStats[] newSongs = readNewSongs(oldSongsPaths);
-        addNewSongsToFile(newSongs);
-
-        int oldSongsLength = 0;
-        if (oldSongs != null){
-            oldSongsLength = oldSongs.length;
-        }
-        int newSongsLength = 0;
-        if (newSongs != null){
-            newSongsLength = newSongs.length;
-        }
-
-        SongStats[] result;
+        SongStats[] newSongs;
         if (oldSongs != null) {
-            result = Arrays.copyOf(oldSongs, oldSongsLength + newSongsLength);
+            System.out.println("old: " + oldSongs.length);
         }
-        else{
-            result = newSongs;
-        }
-        if (newSongs != null) {
-            System.arraycopy(newSongs, 0, result, oldSongsLength, newSongsLength);
-        }
-        sortTextFileAlphabetically();
+        System.out.println("new: " + Objects.requireNonNull(new File(SONGFOLDER).list()).length);
+        if (oldSongs == null || oldSongs.length != Objects.requireNonNull(new File(SONGFOLDER).list()).length - 1) {
+            newSongs = readNewSongs(oldSongsPaths);
+            System.out.println("New songs");
+            addNewSongsToFile(newSongs);
 
-        assert result != null;
-        return new ArrayList<>(Arrays.asList(result));
+            int oldSongsLength = 0;
+            if (oldSongs != null){
+                oldSongsLength = oldSongs.length;
+            }
+            int newSongsLength = 0;
+            if (newSongs != null){
+                newSongsLength = newSongs.length;
+            }
+
+            SongStats[] result;
+            if (oldSongs != null) {
+                result = Arrays.copyOf(oldSongs, oldSongsLength + newSongsLength);
+            }
+            else{
+                result = newSongs;
+            }
+            if (newSongs != null) {
+                System.arraycopy(newSongs, 0, result, oldSongsLength, newSongsLength);
+            }
+            sortTextFileAlphabetically();
+
+            assert result != null;
+            assert result.length == Objects.requireNonNull(new File(SONGFOLDER).list()).length;
+            for (SongStats songStats : result){
+                System.out.println("Checkup " + songStats.getPathToSong());
+            }
+            return new ArrayList<>(Arrays.asList(result));
+        }
+        assert oldSongs.length == Objects.requireNonNull(new File(SONGFOLDER).list()).length;
+        return new ArrayList<>(Arrays.asList(oldSongs));
+
     }
 
     private void addNewSongsToFile(SongStats[] newSongs){
@@ -181,7 +196,7 @@ public class SongStatsArray {
             str.add(line);
         }
         reader.close();
-        Collections.sort(str);
+        str.sort(String::compareToIgnoreCase);
         FileWriter writer = new FileWriter(SONGSTATSINFOFOLDER);
         for(String s: str){
             writer.write(s);
